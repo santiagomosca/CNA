@@ -65,8 +65,7 @@ def dd_1(coord=None, n_el_x=1, n_el_y=1, upwinding='NO'):
     else:
         pass
 
-    # Construcción de las diagonales para las matrices 'célula' de
-    # nx filas.
+    # Construcción de las diagonales para las matrices
     n_el_total = n_el_x * n_el_y
     mat_blanco = sp.identity(n_el_y)
     diags = np.empty((3, n_el_total))
