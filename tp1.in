@@ -1,0 +1,109 @@
+# ====================================================================== #
+#
+# Cálculo numérico avanzado, 2020, FIUBA.
+#
+# Grupo 4: Santiago Mosca, Santiago Pérez Raiden, Cristhian Zárate Evers.
+#
+# Trabajo Práctico n.° 1
+#
+# ====================================================================== #
+#
+# Archivo de input para el programa 'v2_main_tp1.py'
+#
+# Las líneas de ingreso deben escribirse como
+# "<palabra_clave> = <valor>"
+#
+# Las unidades son siguientes:
+#  - longitudes y profundidad del dominio deben especificarse en metros
+#  - velocidad del río en m/s
+#  - descarga de contaminante en kg/día
+#  - decaimiento del contaminante en 1/día
+#  - tiempo total a simular en minutos
+#  - discretización espacial en metros
+#  - discretización temporal en segundos
+#
+# ====================================================================== #
+ DATOS GEOMÉTRICOS
+ -----------------
+
+# Inicio y fin del dominio en coordenada 'x'
+
+X_INI = 0.0
+X_FIN = 2000.0
+
+# Inicio y fin del dominio en coordenada 'y'
+
+Y_INI = 0.0
+Y_FIN = 350.0
+
+# ====================================================================== #
+PARÁMETROS DE MODELADO
+----------------------
+
+# Velocidad de corriente en sentido 'x'
+VEL = 0.8
+
+# Profundidad del cauce
+H = 10.0
+
+# Factor de fricción [adimensional]
+F = 0.04
+
+# Coeficiente de difusión longitudinal [adimensional]
+E_L = 30.0
+
+# Coeficiente de difusión transversal [adim]
+E_T = 0.3 
+
+# Descarga de contaminante
+DESC_CONT = 60.0
+
+# Constante de decaimiento del contaminante
+C_DEC = 0.1 
+
+# Tiempo total a simular [min]
+T_TOTAL = 120.0
+
+# ====================================================================== #
+DISCRETIZACIÓN DEL PROBLEMA
+---------------------------
+DX = 10.0
+DY = 5.0
+DT = 2.0
+
+# ====================================================================== #
+CONDICIONES DE BORDE
+--------------------
+# Las condiciones de borde deben especificarse como 'DIR' (Dirichlet)
+# o 'NEU' (Neumann).
+# La condición de Dirichlet iguala el valor de la concentración a 0.
+# La condición de Neumann iguala a 0 las derivadas primeras y segundas
+# en la dirección normal al borde.
+
+# Condición para el borde con coordenada 'X_INI'
+CB_X_INI = DIR
+
+# Condición para el borde con coordenada 'X_FIN'
+CB_X_FIN = NEU
+
+# Condición para el borde con coordenada 'Y_INI'
+CB_Y_INI = NEU
+
+# Condición para el borde con coordenada 'Y_FIN'
+CB_Y_FIN = NEU
+
+# ====================================================================== #
+SELECCIÓN DE MÉTODO DE SOLUCIÓN
+-------------------------------
+# El valor de theta puede elegirse de los siguientes:
+# 0.0 -----> Método explícito centrado
+# 0.5 -----> Método de Crank-Nicolson
+# 1.0 -----> Método fuertemente implícito
+
+THETA = 0.0
+
+# Discretización del término advectivo con 'upwinding'. <SI> o <NO>
+UPWINDING = SI
+
+ 
+# ====================================================================== #
