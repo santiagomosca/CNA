@@ -8,6 +8,16 @@ Cálculo numérico avanzado, 2020, FIUBA.
 Grupo 4: Santiago Mosca, Santiago Pérez Raiden, Cristhian Zárate Evers.
 
 Trabajo Práctico n.° 1
+
+archivo = 'cna_tp1_func.py'
+
+Contiene funciones auxiliares para el programa principal.
+
+Las funciones dd_1 y dd_2 generan matrices que operan la derivación
+en diferencias finitas sobre el vector con el estado actual del dominio.
+
+La función cb_Dir aplica condición de borde Dirichlet sobre la matriz
+final de la discretización del problema.
 """
 
 import sys
