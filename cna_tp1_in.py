@@ -9,7 +9,7 @@ Grupo 4: Santiago Mosca, Santiago Pérez Raiden, Cristhian Zárate Evers.
 
 Trabajo Práctico n.° 1
 
-Programa 'v2_in_tp1.py'
+archivo: 'v2_in_tp1.py'
 
 Función que lee el archivo de input de las simulaciones y asigna valores
 a las variables requeridas por el programa 'v2_main_tp1.py'.
