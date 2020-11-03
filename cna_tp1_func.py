@@ -86,7 +86,8 @@ def dd_1(coord=None, n_el_x=1, n_el_y=1, upwinding='NO'):
     if coord=='x':
         # Posición de la diagonal ppal, offset de diag sec superior
         # y offset de diag sec inferior
-        diag_sec_sup[-1] = diag_sec_inf[-1] = 0
+        diag_sec_sup[-1] = 0
+        diag_sec_inf[-1] = 0
         pos_diags = np.array([0,1,-1])
 
     elif coord=='y':
@@ -106,11 +107,13 @@ def dd_1(coord=None, n_el_x=1, n_el_y=1, upwinding='NO'):
 
     if coord=='x':
         # Bordes x=0 y x=xL
-        matriz[0::n_el_x] = matriz[n_el_x-1::n_el_x] = fila_neumann
+        matriz[0::n_el_x] = fila_neumann
+        matriz[n_el_x-1::n_el_x] = fila_neumann
       # Esquinas u_0,ny y u_nx,ny
     elif coord=='y':
         # Bordes y=0 y y=yL
-        matriz[0:n_el_x] = matriz[n_el_x*(n_el_y-1):] = fila_neumann
+        matriz[0:n_el_x] = fila_neumann
+        matriz[n_el_x*(n_el_y-1):] = fila_neumann
 
     return matriz
 #%%
@@ -149,10 +152,8 @@ def dd_2(coord=None, n_el_x=1, n_el_y=1):
     else:
         pass
 
-    # Construcción de las diagonales para las matrices 'célula' de
-    # nx filas.
-    # Luego se hace producto Kronecker entre estas células y una
-    # matriz identidad de ny filas.
+    # Construcción de las diagonales para las matrices de
+    # nx*ny filas.
     n_el_total = n_el_x * n_el_y
     mat_blanco = sp.identity(n_el_y)
     diags = np.empty((3, n_el_total))
@@ -162,13 +163,15 @@ def dd_2(coord=None, n_el_x=1, n_el_y=1):
 
     diag_ppal = coef_ppal * np.ones(n_el_x)
     # Diagonales 'secundarias' superior e inferior
-    diag_sec_sup = diag_sec_inf = coef_sec * np.ones(n_el_x)
+    diag_sec_sup = coef_sec * np.ones(n_el_x)
+    diag_sec_inf = coef_sec * np.ones(n_el_x)
     
     # Ajuste de diagonales según derivada en 'x' o 'y'
     if coord=='x':
         # Posición de la diagonal ppal, offset de diag sec superior
         # y offset de diag sec inferior
-        diag_sec_sup[-1] = diag_sec_inf[-1] = 0
+        diag_sec_sup[-1] = 0
+        diag_sec_inf[-1] = 0
         pos_diags = np.array([0,1,-1])
 
     elif coord=='y':
@@ -188,11 +191,13 @@ def dd_2(coord=None, n_el_x=1, n_el_y=1):
 
     if coord=='x':
         # Bordes x=0 y x=xL
-        matriz[0::n_el_x] = matriz[n_el_x-1::n_el_x] = fila_neumann
+        matriz[0::n_el_x] = fila_neumann
+        matriz[n_el_x-1::n_el_x] = fila_neumann
       # Esquinas u_0,ny y u_nx,ny
     elif coord=='y':
         # Bordes y=0 y y=yL
-        matriz[0:n_el_x] = matriz[n_el_x*(n_el_y-1):] = fila_neumann
+        matriz[0:n_el_x] = fila_neumann
+        matriz[n_el_x*(n_el_y-1):] = fila_neumann
 
     return matriz
 #%%
