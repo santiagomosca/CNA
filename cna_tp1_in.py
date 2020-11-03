@@ -69,7 +69,6 @@ def datos_input(archivo_input, comentario='#'):
     dict_valores_num = {}
     dict_valores_alfa = {}
     with open(archivo_input, 'r') as a_in:
-    with open(archivo_input, 'r') as a_in:
         # Lista para comprobar que las variables no han sido
         # especificadas más de una vez o estén faltantes
         variables_encontradas = []
