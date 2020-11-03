@@ -8,6 +8,12 @@ Cálculo numérico avanzado, 2020, FIUBA.
 Grupo 4: Santiago Mosca, Santiago Pérez Raiden, Cristhian Zárate Evers.
 
 Trabajo Práctico n.° 1
+
+archivo: 'cna_tp1_main.py'
+
+Programa principal que arma el sistema de diferencias finitas
+y resuelve el problema de advección-difusión de un contaminante
+en un río de geometría rectangular.
 """
 
 import cna_tp1_func as cna_func
@@ -80,9 +86,9 @@ def main(archivo_input):
     rx = D_l * dt / (dx**2)
     ry = D_t * dt / (dy**2)
 
-    print("Datos para evaluar estabilidad")
-    print("rx = {:.6f}".format(rx))
-    print("ry = {:.6f}".format(ry))
+    print("Datos para evaluar estabilidad:")
+    print("    rx = {:.6f}".format(rx))
+    print("    ry = {:.6f}".format(ry))
 
     # CONSTRUCCIÓN DE MATRICES
     # ========================
@@ -122,29 +128,48 @@ def main(archivo_input):
     # Vector solución
     u = np.zeros((nx*ny,1))
 
-    # Condiciones de borde (aplicación de Dirichlet)
+    # Condiciones de borde (aplicación de Dirichlet = 0)
+    # Por defecto los bordes presentan Neumann = 0 si son normales
+    # a la coordenada de la matriz de derivación
     if vs['CB_X_INI'] == 'DIR':
         B = cna_func.cb_Dir(B, borde='x_ini', n_el_x=nx, n_el_y=ny)
-        if theta != 0.0:
+        if theta > 0.0 and theta <= 1.0:
             A = cna_func.cb_Dir(A, borde='x_ini', n_el_x=nx, n_el_y=ny)
+        elif theta > 1.0 or theta < 0.0:
+            print("Error: THETA debe variar entre 0 y 1")
+            sys.exit()
         else:
             pass
 
     elif vs['CB_X_FIN'] == 'DIR':
         B = func.cb_Dir(B, borde='x_fin', n_el_x=nx, n_el_y=ny)
-        if theta != 0.0:
+        if theta > 0.0 and theta <= 1.0:
             A = func.cb_Dir(A, borde='x_fin', n_el_x=nx, n_el_y=ny)
+        elif theta > 1.0 or theta < 0.0:
+            print("Error: THETA debe variar entre 0 y 1")
+            sys.exit()
+        else:
+            pass
 
     elif vs['CB_Y_INI'] == 'DIR':
         B = cna_func.cb_Dir(B, borde='y_ini', n_el_x=nx, n_el_y=ny)
-        if theta != 0.0:
+        if theta > 0.0 and theta <= 1.0:
             A = cna_func.cb_Dir(A, borde='y_ini', n_el_x=nx, n_el_y=ny)
+        elif theta > 1.0 or theta < 0.0:
+            print("Error: THETA debe variar entre 0 y 1")
+            sys.exit()
+        else:
+            pass
 
     elif vs['CB_Y_FIN'] == 'DIR':
         B = cna_func.cb_Dir(B, borde='y_fin', n_el_x=nx, n_el_y=ny)
-        if theta != 0.0:
+        if theta > 0.0 and theta <= 1.0:
             A = cna_func.cb_Dir(A, borde='y_fin', n_el_x=nx, n_el_y=ny)
-
+        elif theta > 1.0 or theta < 0.0:
+            print("Error: THETA debe variar entre 0 y 1")
+            sys.exit()
+        else:
+            pass
 
     # Forzante. Ubicado en el nodo adyacente a la esquina
     # superior izquierda, sobre borde 'y_ini'
