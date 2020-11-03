@@ -69,18 +69,56 @@ def datos_input(archivo_input, comentario='#'):
     dict_valores_num = {}
     dict_valores_alfa = {}
     with open(archivo_input, 'r') as a_in:
+    with open(archivo_input, 'r') as a_in:
+        # Lista para comprobar que las variables no han sido
+        # especificadas más de una vez o estén faltantes
+        variables_encontradas = []
         for linea in a_in:
             if not linea.startswith(comentario):
                 # Adición de variables numéricas
                 for var_num in nom_var_num_in:
                     if re.search(r'\b' + var_num + r'\b', linea):
-                        dict_valores_num.update({var_num:
-                            linea.split('=')[-1].split()[0]})
+                        variables_encontradas.append(var_num)
+                        try:
+                            val_num = linea.split('=')[-1].split()[0]
+                            dict_valores_num.update({var_num:val_num})
+                        except:
+                            print("Variable requerida " +\
+                                  "'{}' ".format(var_num) +\
+                                  "sin especificar")
+                            sys.exit(1)
                 # Adición de variables alfabéticas
                 for var_alfa in nom_var_alfa_in:
                     if re.search(r'\b' + var_alfa + r'\b', linea):
-                        dict_valores_alfa.update({var_alfa:
-                            linea.split('=')[-1].split()[0]})
+                        variables_encontradas.append(var_alfa)
+                        try:
+                            val_alfa = linea.split('=')[-1].split()[0]
+                            dict_valores_alfa.update({var_alfa:val_alfa})
+                        except:
+                            print("Variable requerida " +\
+                                  "'{}' ".format(var_alfa) +\
+                                  "sin especificar")
+                            sys.exit(1)
+        print(variables_encontradas)
+        # Comprobación de que las variables requeridas no estén
+        # faltantes o hayan sido especificadas más de una vez
+        for var_num in nom_var_num_in:
+            if variables_encontradas.count(var_num) < 1:
+                print("Variable requerida {} faltante".format(var_num))
+                sys.exit(1)
+            elif variables_encontradas.count(var_num) > 1:
+                print("Variable requerida {} ".format(var_num) +\
+                      "especificada más de una vez")
+                sys.exit(1)
+
+        for var_alfa in nom_var_alfa_in:
+            if variables_encontradas.count(var_alfa) < 1:
+                print("Variable requerida {} faltante".format(var_alfa))
+                sys.exit(1)
+            elif variables_encontradas.count(var_alfa) > 1:
+                print("Variable requerida {} ".format(var_alfa) +\
+                      "especificada más de una vez")
+                sys.exit(1)
 
     # Verifica si las variables alfabéticas cumplen
     # con el tipo necesario
@@ -121,5 +159,6 @@ def datos_input(archivo_input, comentario='#'):
     dicc_prog = {**dict_valores_alfa, **dict_valores_num}
     
     return dicc_prog
+
 
 #**** FIN PROGRAMA ****#
