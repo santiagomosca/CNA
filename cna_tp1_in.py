@@ -79,7 +79,7 @@ def datos_input(archivo_input, comentario='#'):
                     if re.search(r'\b' + var_num + r'\b', linea):
                         variables_encontradas.append(var_num)
                         try:
-                            val_num = linea.split('=')[-1].split()[0]
+                            val_num = linea.split('=')[-1].strip()[0]
                             dict_valores_num.update({var_num:val_num})
                         except:
                             print("Variable requerida " +\
@@ -91,7 +91,7 @@ def datos_input(archivo_input, comentario='#'):
                     if re.search(r'\b' + var_alfa + r'\b', linea):
                         variables_encontradas.append(var_alfa)
                         try:
-                            val_alfa = linea.split('=')[-1].split()[0]
+                            val_alfa = linea.split('=')[-1].strip()[0]
                             dict_valores_alfa.update({var_alfa:val_alfa})
                         except:
                             print("Variable requerida " +\
