@@ -99,7 +99,7 @@ def datos_input(archivo_input, comentario='#'):
                                   "'{}' ".format(var_alfa) +\
                                   "sin especificar")
                             sys.exit(1)
-        print(variables_encontradas)
+
         # Comprobación de que las variables requeridas no estén
         # faltantes o hayan sido especificadas más de una vez
         for var_num in nom_var_num_in:
@@ -110,6 +110,8 @@ def datos_input(archivo_input, comentario='#'):
                 print("Variable requerida {} ".format(var_num) +\
                       "especificada más de una vez")
                 sys.exit(1)
+            else:
+                pass
 
         for var_alfa in nom_var_alfa_in:
             if variables_encontradas.count(var_alfa) < 1:
@@ -119,6 +121,8 @@ def datos_input(archivo_input, comentario='#'):
                 print("Variable requerida {} ".format(var_alfa) +\
                       "especificada más de una vez")
                 sys.exit(1)
+            else:
+                pass
 
     # Verifica si las variables alfabéticas cumplen
     # con el tipo necesario
