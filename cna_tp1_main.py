@@ -282,7 +282,7 @@ def main(archivo_input):
         if (t/60)%1==0:
             print("\nTiempo: {:.1f} min".format(t/60))
             print("Valor máximo de concentración instantánea: "\
-                  + "{:.3e} kg/m^3".format(sol_concentracion.max()))
+                  + "{:.3e} kg/s*m^3".format(sol_concentracion.max()))
 
         # Guardar vector solución a archivo
         archivo = "cont_{:.1f}".format(t)
