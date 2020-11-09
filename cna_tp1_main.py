@@ -21,7 +21,7 @@ import cna_tp1_in as cna_in
 
 import numpy as np
 import scipy.sparse as sp
-from scipy.sparse.linalg import spsolve
+import scipy.sparse.linalg as splinalg
 import os
 import sys
 
@@ -70,8 +70,17 @@ def main(archivo_input):
     Lx = x_fin - x_ini
     Ly = y_fin - y_ini
 
-    nx = np.int(Lx/dx + 1)
-    ny = np.int(Ly/dy + 1)
+    ## Los nodos de cálculo se ubican en el las esquinas de las celdas
+    #nx = np.int(Lx/dx + 1)
+    #ny = np.int(Ly/dy + 1)
+    
+    # Los nodos de cálculo se ubican en el centro de las celdas
+    nx = np.int(Lx/dx)
+    ny = np.int(Ly/dy)
+    nt = np.int(nx*ny)
+
+    # Volumen de celda utilizado para calcular concentración por m^3
+    v_cel = dx*dy*h # [m^3]
 
     #Conversión de unidades para descarga y decaimiento de contaminante
     cu = 1 / (3600 * 24) # día / (3600 seg/hora * 24 hora/día)
@@ -86,7 +95,7 @@ def main(archivo_input):
     rx = D_l * dt / (dx**2)
     ry = D_t * dt / (dy**2)
 
-    print("Datos para evaluar estabilidad:")
+    print("\nDatos para evaluar estabilidad:")
     print("    rx = {:.6f}".format(rx))
     print("    ry = {:.6f}".format(ry))
 
@@ -98,128 +107,172 @@ def main(archivo_input):
     #theta = 0.5 --> Crank-Nicolson
     #theta = 0.0 --> Explícito centrado
     theta = vs['THETA']
+    
+    print("\nCorriendo con theta = {:.1f}".format(theta))
+
+    # Selección de upwinding
+    upw = vs['UPWINDING']
 
     # Matriz del término advectivo
-    if vs['UPWINDING'] == 'SI':
-        D1x = vel / dx * cna_func.dd_1(
-            coord='x', n_el_x=nx, n_el_y=ny, upwinding='SI')
-
-    elif vs['UPWINDING'] == 'NO':
-        D1x = vel / (2*dx) * cna_func.dd_1(
-            coord='x', n_el_x=nx, n_el_y=ny, upwinding='NO')
-
+    D1x = vel * cna_func.d_dx(
+        orden=1, n_el_x=nx, n_el_y=ny, delta_x=dx, upwinding=upw)
 
     # Matrices de los términos difusivos
-    D2x = D_l / dx**2 * cna_func.dd_2(coord='x', n_el_x=nx, n_el_y=ny)
-    D2y = D_t / dy**2 * cna_func.dd_2(coord='y', n_el_x=nx, n_el_y=ny)
+    D2x = D_l * cna_func.d_dx(
+        orden=2, n_el_x=nx, n_el_y=ny, delta_x=dx, upwinding=upw)
+    D2y = D_t * cna_func.d_dy(
+        orden=2, n_el_x=nx, n_el_y=ny, delta_y=dy, upwinding=upw)
 
     # Matriz identidad
-    I = sp.eye(nx*ny)
+    I = sp.eye(nt)
 
     # Suma de matrices
     M = dt * (D2x  + D2y - I*cu_c_dec - D1x)
 
-    # Matriz de coeficientes
+    # Matrices para solución LHS y RHS
     A = I - theta * M
-
-    # Matriz de términos independientes
     B = I + (1-theta) * M
 
-    # Vector solución
-    u = np.zeros((nx*ny,1))
-
     # Condiciones de borde (aplicación de Dirichlet = 0)
-    # Por defecto los bordes presentan Neumann = 0 si son normales
-    # a la coordenada de la matriz de derivación
-    if vs['CB_X_INI'] == 'DIR':
-        B = cna_func.cb_Dir(B, borde='x_ini', n_el_x=nx, n_el_y=ny)
-        if theta > 0.0 and theta <= 1.0:
-            A = cna_func.cb_Dir(A, borde='x_ini', n_el_x=nx, n_el_y=ny)
-        elif theta > 1.0 or theta < 0.0:
-            print("Error: THETA debe variar entre 0 y 1")
-            sys.exit()
-        else:
-            pass
+    # Por defecto los bordes presentan u_x = 0 si son normales
+    # a la coordenada de la matriz de derivación dd_1
+    
+    # Recorre diccionario de variables buscando las que sean 'Dirichlet'
+    cont_borde = 0
+    for key in vs.keys():
+        if vs[key] == 'DIR':
+            # Registro de cantidad de bordes con condición Dirichlet
+            cont_borde += 1
+            # Construcción de la identificación del borde
+            borde_aplicacion = key.lower().replace('cb_','')
 
-    elif vs['CB_X_FIN'] == 'DIR':
-        B = func.cb_Dir(B, borde='x_fin', n_el_x=nx, n_el_y=ny)
-        if theta > 0.0 and theta <= 1.0:
-            A = func.cb_Dir(A, borde='x_fin', n_el_x=nx, n_el_y=ny)
-        elif theta > 1.0 or theta < 0.0:
-            print("Error: THETA debe variar entre 0 y 1")
-            sys.exit()
+            B = cna_func.cb_Dir(\
+                B, borde=borde_aplicacion, n_el_x=nx, n_el_y=ny)
+            A = cna_func.cb_Dir(\
+                A, borde=borde_aplicacion, n_el_x=nx, n_el_y=ny)
+                
         else:
             pass
+        
+    print("\nBordes con condición Dirichlet: {}".format(cont_borde))
 
-    elif vs['CB_Y_INI'] == 'DIR':
-        B = cna_func.cb_Dir(B, borde='y_ini', n_el_x=nx, n_el_y=ny)
-        if theta > 0.0 and theta <= 1.0:
-            A = cna_func.cb_Dir(A, borde='y_ini', n_el_x=nx, n_el_y=ny)
-        elif theta > 1.0 or theta < 0.0:
-            print("Error: THETA debe variar entre 0 y 1")
-            sys.exit()
-        else:
-            pass
-
-    elif vs['CB_Y_FIN'] == 'DIR':
-        B = cna_func.cb_Dir(B, borde='y_fin', n_el_x=nx, n_el_y=ny)
-        if theta > 0.0 and theta <= 1.0:
-            A = cna_func.cb_Dir(A, borde='y_fin', n_el_x=nx, n_el_y=ny)
-        elif theta > 1.0 or theta < 0.0:
-            print("Error: THETA debe variar entre 0 y 1")
-            sys.exit()
-        else:
-            pass
+    # Vector solución. Concentración inicial en todos los puntos igual a 0
+    u_ini = np.zeros((nt,1))
 
     # Forzante. Ubicado en el nodo adyacente a la esquina
     # superior izquierda, sobre borde 'y_ini'
-    print("Fuente: {} kg/dt".format(cu_desc_cont * dt))
-    pos_x = 1
-    pos_y = 0
-    pos_forzante = nx*np.int(ny*pos_y) + pos_x
+    xforz = 1
+    yforz = 0
+    # La descarga de contaminante, unidades kg/s, se multiplica por el
+    # intervalo 'dt' para que en cada paso de tiempo la forzante sea igual
+    # a la cantidad de contaminante que se vuelca en el total del intervalo
+    vforz = cu_desc_cont * dt
 
-    u[pos_forzante] = cu_desc_cont * dt
+    print("\nFuente: {:.3e} kg/s de contaminante".format(cu_desc_cont))
+    print("Descarga por intervalo 'dt' de {:.1f} s: {:.3e} kg".\
+          format(dt, vforz))
 
-    fila_forzante = sp.eye(m=1, n=nx*ny, k=pos_forzante)
-    B[pos_y] = fila_forzante
+
+    # Aplicación de la forzante al vector de condición inicial y a las
+    # matrices de cálculo correspondiente
+    u_rhs = cna_func.cb_vector_Forz(\
+        vector_solucion=u_ini,\
+        pos_x=xforz,\
+        pos_y=yforz,\
+        valor_forzante=vforz,\
+        n_el_x=nx,\
+        n_el_y=ny)
+
+    B = cna_func.cb_matriz_Forz(\
+        matriz_aplicacion=B,\
+        pos_x=xforz,\
+        pos_y=yforz,\
+        n_el_x=nx,\
+        n_el_y=ny)
+    A = cna_func.cb_matriz_Forz(\
+        matriz_aplicacion=A,\
+        pos_x=xforz,\
+        pos_y=yforz,\
+        n_el_x=nx,\
+        n_el_y=ny)
+
+
+    #**** IMPRESIÓN DE MATRICES FINALES ****#    
+    np.set_printoptions(linewidth=1000)
+    #print("Matriz 'B'")
+    #print(B.toarray())
+    #print("\n\n\n")
+    #print("Matriz 'A'")
+    #print(A.toarray())
 
 
     #**** SOLUCIÓN ITERATIVA ****#
+    print("\nEjecutando bucle de solución:")
+    print("-----------------------------")
+
     # Conversión del tiempo final a segundos
-    t_final = np.int(t_total*60/dt) + 1
+    t_final = t_total*60
 
-    for i in range(1,t_final):
-        t = dt * i
+    # Cantidad de pasos
+    n_pasos = np.arange(dt, t_final+dt,dt)
 
-        # Armado del vector dato
-        Bu = B.dot(u)
+    # Bucle de solución
+    for t in n_pasos:
+
+        #print("Vector 'u_rhs', t = {} s".format(t))
+        #print(u_rhs)
 
         # Cálculo del vector solución
-        u_n1 = spsolve(A, Bu)
-
+        u_n1 = splinalg.spsolve(A.tocsc(), B.dot(u_rhs))
+        
         # Actualización del vector viejo
-        u = u_n1
+        u_rhs = u_n1
 
-        # Impresión tiempo
-        if (t/60)%5==0:
-            print('Tiempo: {:.1f} min'.format(t/60))
+        # PARA PENSAR: la cantidad de contaminante usada como
+        # forzante es la descarga, unidades kg/s, multiplicada por
+        # el intervalo 'dt'. El vector forzante tiene, entonces,
+        # unidades kg. ¿Es esto consistente con la forma de las
+        # ecuaciones matriciales? Si del lado izquierdo se despeja
+        # el vector u_n+1 para que el lado derecho tenga la
+        # expresión r=D*dt/dx^2, entonces pareciera que sí.
+        # Por el momento, este es el enfoque adoptado.
+        #
+        # El problema es que así, para distintos intervalos dt
+        # se tienen valores de contaminante diferentes. Entonces,
+        # para uniformizar la solución, se divide esto por 'dt',
+        # lo cual parece deshacer lo descrito en el párrafo
+        # anterior. ¿CUÁL ES EL PROCEDIMIENTO CORRECTO?
+        #
+        # Finalmente, para obtener la concentración, se divide
+        # el valor anterior por el volumen del nodo, calculado
+        # como dx*dy*h
+        sol_concentracion = u_n1/(v_cel*dt)
+
+        # Impresión tiempo cada 1 minuto
+        if (t/60)%1==0:
+            print("\nTiempo: {:.1f} min".format(t/60))
+            print("Valor máximo de concentración: {:.3e} kg/m^3".\
+                format(sol_concentracion.max()))
 
         # Guardar vector solución a archivo
-        archivo = 'cont_{:.1f}'.format(t)
-        directorio = 'cna_tp1_sol'
-        ruta = os.path.join(directorio, archivo)
+        archivo = "cont_{:.1f}".format(t)
+        directorio = "cna_tp1_sol_dx{}_dy{}_dt{}_theta{}".\
+            format(dx,dy,dt,theta)
+        ruta = os.path.join(os.getcwd(),directorio, archivo)
 
         try:
             os.mkdir(directorio)
-        except OSError as error: 
+        except OSError as error:
            pass
 
-        encabezado = "Solución para concentración de contaminante [kg]\n" +\
-                     "Theta = {:.1f}\n".format(theta) +\
-                     "t = {:.2f} min".format(t/60)
+        encabezado = "Solución para concentración de " +\
+            "contaminante [kg/m^3]\n" +\
+            "Theta = {:.1f}\n".format(theta) +\
+            "t = {:.2f} min".format(t/60)
 
-        np.savetxt(ruta,u_n1.reshape(ny,nx),fmt='%.6e', header=encabezado)
-    
+        np.savetxt(ruta,sol_concentracion.reshape(ny,nx),fmt='%.6e',\
+            header=encabezado)
+            
     #**** FIN MAIN ****#
     
 if __name__ == "__main__":
