@@ -89,8 +89,8 @@ def main(archivo_input):
     ny = np.int(Ly/dy)
     nt = np.int(nx*ny)
 
-    print("Cantidad de nodos totales en 'x': {:i}".format(nx))
-    print("Cantidad de nodos totales en 'y': {:i}".format(ny))
+    print("Cantidad de nodos totales en 'x': {:d}".format(nx))
+    print("Cantidad de nodos totales en 'y': {:d}".format(ny))
     print("")
 
     # Volumen de celda utilizado para calcular concentración por m^3
