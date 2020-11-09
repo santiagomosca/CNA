@@ -68,7 +68,7 @@ T_TOTAL = 120.0
 DISCRETIZACIÓN DEL PROBLEMA
 ---------------------------
 DX = 10.0
-DY = 5.0
+DY = 1.0
 DT = 2.0
 
 # ====================================================================== #
@@ -103,7 +103,12 @@ SELECCIÓN DE MÉTODO DE SOLUCIÓN
 THETA = 0.0
 
 # Discretización del término advectivo con 'upwinding'. <SI> o <NO>
-UPWINDING = SI
+UPWINDING = NO
 
+# ====================================================================== #
+ESCRITURA A ARCHIVO
+-------------------
+# Intervalo temporal, en minutos, para guardar la solución a archivo
+T_SOL = 5
  
 # ====================================================================== #

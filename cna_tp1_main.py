@@ -282,26 +282,31 @@ def main(archivo_input):
         if (t/60)%1==0:
             print("\nTiempo: {:.1f} min".format(t/60))
             print("Valor máximo de concentración instantánea: "\
-                  + "{:.3e} kg/s*m^3".format(sol_concentracion.max()))
+                  + "{:.3e} kg/m^3".format(sol_concentracion.max()))
 
-        # Guardar vector solución a archivo
-        archivo = "cont_{:.1f}".format(t)
+        # Guardar vector solución a archivo según el intervalo
+        # especificado
         directorio = "cna_tp1_sol_dx{}_dy{}_dt{}_theta{}".\
             format(dx,dy,dt,theta)
-        ruta = os.path.join(os.getcwd(),directorio, archivo)
 
-        try:
-            os.mkdir(directorio)
-        except OSError as error:
-           pass
+        t_sol = vs['T_SOL'] # [min]
 
-        encabezado = "Solución para concentración de " +\
+        if (t/60)%t_sol==0:
+            archivo = "cont_{:.1f}".format(t)
+            ruta = os.path.join(os.getcwd(),directorio, archivo)
+
+            try:
+                os.mkdir(directorio)
+            except OSError as error:
+                pass
+
+            encabezado = "Solución para concentración de " +\
             "contaminante [kg/m^3]\n" +\
             "Theta = {:.1f}\n".format(theta) +\
             "t = {:.2f} min".format(t/60)
 
-        np.savetxt(ruta,sol_concentracion.reshape(ny,nx),fmt='%.6e',\
-            header=encabezado)
+            np.savetxt(ruta,sol_concentracion.reshape(ny,nx),\
+                       fmt='%.6e',header=encabezado)
             
     #**** FIN MAIN ****#
     
