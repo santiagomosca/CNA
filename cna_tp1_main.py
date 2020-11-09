@@ -70,6 +70,16 @@ def main(archivo_input):
     Lx = x_fin - x_ini
     Ly = y_fin - y_ini
 
+    print("\nDatos de discretización")
+    print("-------------------")
+    print("Longitud en 'x' del dominio: {:.1f} m".format(Lx))
+    print("Longitud en 'y' del dominio: {:.1f} m".format(Ly))
+    print("")
+    print("Intervalo 'dt' de {:.1f} s".format(dt))
+    print("Discretización en 'x' de {:.1f} m".format(dx))
+    print("Discretización en 'y' de {:.1f} m".format(dy))
+    print("")
+
     ## Los nodos de cálculo se ubican en el las esquinas de las celdas
     #nx = np.int(Lx/dx + 1)
     #ny = np.int(Ly/dy + 1)
@@ -78,6 +88,10 @@ def main(archivo_input):
     nx = np.int(Lx/dx)
     ny = np.int(Ly/dy)
     nt = np.int(nx*ny)
+
+    print("Cantidad de nodos totales en 'x': {:i}".format(nx))
+    print("Cantidad de nodos totales en 'y': {:i}".format(ny))
+    print("")
 
     # Volumen de celda utilizado para calcular concentración por m^3
     v_cel = dx*dy*h # [m^3]
@@ -112,6 +126,8 @@ def main(archivo_input):
 
     # Selección de upwinding
     upw = vs['UPWINDING']
+    
+    print("\nCorriendo con upwinding: {}".format(upw))
 
     # Matriz del término advectivo
     D1x = vel * cna_func.d_dx(
@@ -163,14 +179,23 @@ def main(archivo_input):
     # superior izquierda, sobre borde 'y_ini'
     xforz = 1
     yforz = 0
-    # La descarga de contaminante, unidades kg/s, se multiplica por el
-    # intervalo 'dt' para que en cada paso de tiempo la forzante sea igual
-    # a la cantidad de contaminante que se vuelca en el total del intervalo
-    vforz = cu_desc_cont * dt
+    
+    ## ANTERIOR:
+    ## La descarga de contaminante, unidades kg/s, se multiplica por el
+    ## intervalo 'dt' para que en cada paso de tiempo la forzante sea igual
+    ## a la cantidad de contaminante que se vuelca en el total del intervalo
+
+    # ACTUAL
+    # La descarga de contaminante, unidades kg/s, se aplica como tal como
+    # forzante, expresando una 'cantidad instantánea'. Con esto, es posible
+    # comparar la cantidad de contaminante en cada paso temporal
+    # independientemente del 'dt' utilizado
+    vforz = cu_desc_cont
+
 
     print("\nFuente: {:.3e} kg/s de contaminante".format(cu_desc_cont))
-    print("Descarga por intervalo 'dt' de {:.1f} s: {:.3e} kg".\
-          format(dt, vforz))
+    #print("Descarga por intervalo 'dt' de {:.1f} s: {:.3e} kg".\
+          #format(dt, vforz))
 
 
     # Aplicación de la forzante al vector de condición inicial y a las
@@ -246,13 +271,18 @@ def main(archivo_input):
         # Finalmente, para obtener la concentración, se divide
         # el valor anterior por el volumen del nodo, calculado
         # como dx*dy*h
-        sol_concentracion = u_n1/(v_cel*dt)
+        
+        ## ANTERIOR
+        #sol_concentracion = u_n1/(v_cel*dt)
+
+        # ACTUAL
+        sol_concentracion = u_n1/v_cel
 
         # Impresión tiempo cada 1 minuto
         if (t/60)%1==0:
             print("\nTiempo: {:.1f} min".format(t/60))
-            print("Valor máximo de concentración: {:.3e} kg/m^3".\
-                format(sol_concentracion.max()))
+            print("Valor máximo de concentración instantánea: "\
+                  + "{:.3e} kg/m^3".format(sol_concentracion.max()))
 
         # Guardar vector solución a archivo
         archivo = "cont_{:.1f}".format(t)
