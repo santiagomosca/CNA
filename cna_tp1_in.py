@@ -129,12 +129,13 @@ def datos_input(archivo_input, comentario='#'):
         # Verificación de variable alfabética
         if not dict_valores_alfa[key].isalpha():
             print("La variable requerida para {}".format(key)
-                  + "debe ser del tipo alfabética")
+                  + " debe ser del tipo alfabética")
             sys.exit(1)
 
         # Verificación de las condiciones de borde
         elif key in nom_var_alfa_in[:-1]:
             if dict_valores_alfa[key] not in ('DIR','NEU'):
+                print(dict_valores_alfa)
                 print("Tipo de condición de borde mal especificado")
                 print("La condición debe ser 'DIR' o 'NEU'")
                 sys.exit(1)
@@ -158,10 +159,17 @@ def datos_input(archivo_input, comentario='#'):
         else:
             dict_valores_num[key] = float(val)
 
+    # Verificación del valor de theta
+    if dict_valores_num['THETA'] > 1.0 or \
+       dict_valores_num['THETA'] < 0.0:
+        print("Error: THETA debe variar entre 0 y 1")
+        sys.exit(1)
+    else:
+        pass
+
     # Construcción del diccionario final para el programa 'v2_main_tp1.py'
     dicc_prog = {**dict_valores_alfa, **dict_valores_num}
     
     return dicc_prog
-
 
 #**** FIN PROGRAMA ****#
