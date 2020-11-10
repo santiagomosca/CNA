@@ -23,8 +23,8 @@
 #  - discretización temporal en segundos
 #
 # ====================================================================== #
- DATOS GEOMÉTRICOS
- -----------------
+# DATOS GEOMÉTRICOS
+# -----------------
 
 # Inicio y fin del dominio en coordenada 'x'
 
@@ -37,8 +37,8 @@ Y_INI = 0.0
 Y_FIN = 350.0
 
 # ====================================================================== #
-PARÁMETROS DE MODELADO
-----------------------
+# PARÁMETROS DE MODELADO
+# ----------------------
 
 # Velocidad de corriente en sentido 'x'
 VEL = 0.8
@@ -65,15 +65,15 @@ C_DEC = 0.1
 T_TOTAL = 120.0
 
 # ====================================================================== #
-DISCRETIZACIÓN DEL PROBLEMA
----------------------------
+# DISCRETIZACIÓN DEL PROBLEMA
+# ---------------------------
 DX = 10.0
 DY = 1.0
 DT = 2.0
 
 # ====================================================================== #
-CONDICIONES DE BORDE
---------------------
+# CONDICIONES DE BORDE
+# --------------------
 # Las condiciones de borde deben especificarse como 'DIR' (Dirichlet)
 # o 'NEU' (Neumann).
 # La condición de Dirichlet iguala el valor de la concentración a 0.
@@ -93,8 +93,8 @@ CB_Y_INI = NEU
 CB_Y_FIN = NEU
 
 # ====================================================================== #
-SELECCIÓN DE MÉTODO DE SOLUCIÓN
--------------------------------
+# SELECCIÓN DE MÉTODO DE SOLUCIÓN
+# -------------------------------
 # El valor de theta puede elegirse de los siguientes:
 # 0.0 -----> Método explícito centrado
 # 0.5 -----> Método de Crank-Nicolson
@@ -106,9 +106,24 @@ THETA = 0.0
 UPWINDING = NO
 
 # ====================================================================== #
-ESCRITURA A ARCHIVO
--------------------
-# Intervalo temporal, en minutos, para guardar la solución a archivo
+# ESCRITURA A ARCHIVO
+# -------------------
+# Intervalo temporal, en minutos, para guardar la solución a archivo.
+# Se utiliza también para la salida a gráfico de la solución.
+
 T_SOL = 5
- 
+
+# ====================================================================== #
+# SALIDA A GRÁFICO
+# -------------------
+# Dimensión de imagen. Si <1>, el gráfico utiliza una coordenada, 'x' o
+# 'y', como variable independiente y la solución como dependiente.
+# Si dimensión es <2>, entonces la salida es una vista superior del
+# dominio, con la solución expresada según mapa de colores.
+
+DIM_IMG = 1
+
+# Nodo 'y' a lo largo del que se grafica la solución
+Y_IMG = 0
+
 # ====================================================================== #

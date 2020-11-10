@@ -286,17 +286,17 @@ def main(archivo_input):
 
         # Guardar vector solución a archivo según el intervalo
         # especificado
-        directorio = "cna_tp1_sol_dx{}_dy{}_dt{}_theta{}".\
+        dir_sol = "cna_tp1_sol_dx{}_dy{}_dt{}_theta{}".\
             format(dx,dy,dt,theta)
 
         t_sol = vs['T_SOL'] # [min]
 
         if (t/60)%t_sol==0:
-            archivo = "cont_{:.1f}".format(t)
-            ruta = os.path.join(os.getcwd(),directorio, archivo)
+            arch_sol = "cont_{:.1f}".format(t)
+            ruta_sol = os.path.join(os.getcwd(),dir_sol,arch_sol)
 
             try:
-                os.mkdir(directorio)
+                os.mkdir(dir_sol)
             except OSError as error:
                 pass
 
@@ -305,7 +305,7 @@ def main(archivo_input):
             "Theta = {:.1f}\n".format(theta) +\
             "t = {:.2f} min".format(t/60)
 
-            np.savetxt(ruta,sol_concentracion.reshape(ny,nx),\
+            np.savetxt(ruta_sol,sol_concentracion.reshape(ny,nx),\
                        fmt='%.6e',header=encabezado)
             
     #**** FIN MAIN ****#
