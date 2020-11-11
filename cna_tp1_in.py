@@ -49,7 +49,8 @@ def datos_input(archivo_input, comentario='#'):
                         'dt',
                         'theta',
                         't_sol',
-                        'dim_img'
+                        'dim_img',
+                        'y_img'
                        ]
 
     # Nombres de variables alfabéticas que usa
