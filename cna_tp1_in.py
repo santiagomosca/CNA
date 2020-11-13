@@ -56,6 +56,7 @@ def datos_input(archivo_input, comentario='#'):
     # Nombres de variables alfabéticas que usa
     # el programa 'v2_main_tp1.py'
     nom_var_alfa_prog = [
+                         'auto_dt',
                          'cb_x_ini',
                          'cb_x_fin',
                          'cb_y_ini',
@@ -135,10 +136,20 @@ def datos_input(archivo_input, comentario='#'):
                   + " debe ser del tipo alfabética")
             sys.exit(1)
 
+        # Verificación de la selección para cálculo automático
+        # de paso temporal
+        elif key in nom_var_alfa_in[0]:
+            if dict_valores_alfa[key] not in ('SI','NO'):
+                print("Selección de cálculo automático de "
+                      + "paso temporal mal especificada")
+                print("La selección debe ser 'SI' o 'NO'")
+                sys.exit(1)
+            else:
+                 pass
+            
         # Verificación de las condiciones de borde
-        elif key in nom_var_alfa_in[:-1]:
+        elif key in nom_var_alfa_in[1:-1]:
             if dict_valores_alfa[key] not in ('DIR','NEU'):
-                print(dict_valores_alfa)
                 print("Tipo de condición de borde mal especificado")
                 print("La condición debe ser 'DIR' o 'NEU'")
                 sys.exit(1)
@@ -153,6 +164,7 @@ def datos_input(archivo_input, comentario='#'):
                 sys.exit(1)
             else:
                 pass
+
 
     # Conversión a flotante de las variables numéricas
     for key, val in dict_valores_num.items():
