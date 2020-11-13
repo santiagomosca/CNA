@@ -596,41 +596,28 @@ def auto_dt(delta_x=1, delta_y=1, incremento=0.5, t_final=1,
     para cambiar el ajuste del 'dt'.
     """
 
-    # Comprobación de parámetros
-    if delta_t==None:
-        print("Error en función 'auto_dt'")
-        print("Intervalo 'dt' no especificado")
-        sys.exit(1)
-    else:
-        pass
-    
-    # Comienzo de función
-    if seleccion=="NO":
-        print("\nSelección manual de 'DT'")
-        pass
-    else: # seleccion==SI:
-        # Conversión a segundos de t_final
-        t_final_seg = t_final * 60
+    # Conversión a segundos de t_final
+    t_final_seg = t_final * 60
 
-        # Pasos temporales para comparar
-        delta_ts = np.arange(incremento,
-                             t_final_seg+incremento,
-                             incremento)
+    # Pasos temporales para comparar
+    delta_ts = np.arange(incremento,
+                         t_final_seg+incremento,
+                         incremento)
 
-        # Delta_t de prueba para delta_x y delta_y
-        prueba_delta_tx = delta_x**2 * lim_estabilidad / dif_long
-        prueba_delta_ty = delta_y**2 * lim_estabilidad / dif_trans
+    # Delta_t de prueba para delta_x y delta_y
+    prueba_delta_tx = delta_x**2 * lim_estabilidad / dif_long
+    prueba_delta_ty = delta_y**2 * lim_estabilidad / dif_trans
 
-        # Resta de los delta_tx y delta_ty de prueba del arreglo con
-        # los posibles pasos temporales
-        delta_ts_x = delta_ts - prueba_delta_tx
-        delta_ts_y = delta_ts - prueba_delta_ty
+    # Resta de los delta_tx y delta_ty de prueba del arreglo con
+    # los posibles pasos temporales
+    delta_ts_x = delta_ts - prueba_delta_tx
+    delta_ts_y = delta_ts - prueba_delta_ty
 
-        # Selección del delta
-        delta_tx = delta_ts[np.where(delta_ts_x<=0)].max()
-        delta_ty = delta_ts[np.where(delta_ts_y<=0)].max()
+    # Selección del delta
+    delta_tx = delta_ts[np.where(delta_ts_x<=0)].max()
+    delta_ty = delta_ts[np.where(delta_ts_y<=0)].max()
 
-        delta_t = np.minimum(delta_tx, delta_ty)
+    delta_t = np.minimum(delta_tx, delta_ty)
 
     # Fin de función 'auto_dt'
     return delta_t
