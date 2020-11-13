@@ -65,7 +65,17 @@ def main(archivo_input):
 
     dx = vs['DX']
     dy = vs['DY']
-    dt = vs['DT']
+    
+    # Selección de paso temporal
+    auto_dt = vs['AUTO_DT']
+    
+    if auto_dt=="NO":
+        dt = vs['DT']
+
+    else: # auto_dt=="SI"
+        dt = func_cna.auto_dt(delta_x=dx, delta_y=dy,
+                              t_final=t_total,
+                              dif_long=D_l,dif_trans=D_t)
 
     Lx = x_fin - x_ini
     Ly = y_fin - y_ini
