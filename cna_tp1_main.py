@@ -73,7 +73,7 @@ def main(archivo_input):
         dt = vs['DT']
 
     else: # auto_dt=="SI"
-        dt = func_cna.auto_dt(delta_x=dx, delta_y=dy,
+        dt = cna_func.auto_dt(delta_x=dx, delta_y=dy,
                               t_final=t_total,
                               dif_long=D_l,dif_trans=D_t)
 
