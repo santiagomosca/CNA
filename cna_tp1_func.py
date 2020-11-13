@@ -634,8 +634,9 @@ def auto_dt(delta_x=1, delta_y=1, incremento=0.5, t_final=1,
 
     # Fin de función 'auto_dt'
     return delta_t
-        
-    
+
+#%%
+ 
 
 #**** PRUEBA DE FUNCIONES ****#
 
