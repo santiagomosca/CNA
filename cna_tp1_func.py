@@ -570,6 +570,72 @@ def conc_Cont(desc_cont=None, delta_x=1, delta_y=1, prof=1, delta_t=1):
     Función que ...
     """
     pass
+#%%
+
+#%%
+def auto_dt(delta_x=1, delta_y=1, incremento=0.5, t_final=1,
+            lim_estabilidad=0.25, dif_long=1, dif_trans=1,
+            seleccion="NO"):
+    """
+    Función que selecciona un paso de tiempo automáticamente en función de
+    delta_x y delta_y, a modo de cumplir con la condición de estabilidad
+    requerida para el método explícito.
+
+    El incremento del paso temporal es por default en 0.5 seg. Puede modificarse
+    a elección. Se sugieren pasos 'redondos' para facilitar la lectura de la
+    solución.
+    
+    Se efectúa una resta entre el paso temporal que cumple la condición de
+    estabilidad r_x o r_y =1/4 y un vector de los posibles tiempos entre
+    
+    Variables:
+    'dif_long' es el coeficiente de difusividad longitudinal (alineado a 'x')
+    'dif_trans' es coeficiente de difusividad transversal (alineado a 'y')
+    'lim_estabilidad' es el límite superior para asegurar la estabilidad del
+    método. Por defecto en 1/4 para problema bidimensional. Se puede modificar
+    para cambiar el ajuste del 'dt'.
+    """
+
+    # Comprobación de parámetros
+    if delta_t==None:
+        print("Error en función 'auto_dt'")
+        print("Intervalo 'dt' no especificado")
+        sys.exit(1)
+    else:
+        pass
+    
+    # Comienzo de función
+    if seleccion=="NO":
+        print("\nSelección manual de 'DT'")
+        pass
+    else: # seleccion==SI:
+        # Conversión a segundos de t_final
+        t_final_seg = t_final * 60
+
+        # Pasos temporales para comparar
+        delta_ts = np.arange(incremento,
+                             t_final_seg+incremento,
+                             incremento)
+
+        # Delta_t de prueba para delta_x y delta_y
+        prueba_delta_tx = delta_x**2 * lim_estabilidad / dif_long
+        prueba_delta_ty = delta_y**2 * lim_estabilidad / dif_trans
+
+        # Resta de los delta_tx y delta_ty de prueba del arreglo con
+        # los posibles pasos temporales
+        delta_ts_x = delta_ts - prueba_delta_tx
+        delta_ts_y = delta_ts - prueba_delta_ty
+
+        # Selección del delta
+        delta_tx = delta_ts[np.where(delta_ts_x<=0)].max()
+        delta_ty = delta_ts[np.where(delta_ts_y<=0)].max()
+
+        delta_t = np.minimum(delta_tx, delta_ty)
+
+    # Fin de función 'auto_dt'
+    return delta_t
+        
+    
 
 #**** PRUEBA DE FUNCIONES ****#
 
