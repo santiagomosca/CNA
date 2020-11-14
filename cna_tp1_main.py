@@ -73,7 +73,6 @@ def main(archivo_input):
         dt = vs['DT']
 
     else: # auto_dt=="SI"
-        print("\nRealizando selección automática de paso temporal")
         dt = cna_func.auto_dt(delta_x=dx, delta_y=dy,
                               t_final=t_total,
                               dif_long=D_l,dif_trans=D_t)
@@ -83,6 +82,8 @@ def main(archivo_input):
 
     print("\nDatos de discretización")
     print("-------------------")
+    if auto_dt=="SI":
+        print("\nSelección automática de paso temporal")
     print("Discretización temporal en pasos de {:.1f} seg".format(dt))
     print("Longitud en 'x' del dominio: {:.1f} m".format(Lx))
     print("Longitud en 'y' del dominio: {:.1f} m".format(Ly))
