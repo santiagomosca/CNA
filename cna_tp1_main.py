@@ -83,7 +83,7 @@ def main(archivo_input):
 
     print("\nDatos de discretización")
     print("-------------------")
-    print("Discretización temporal en pasos de {.1f} seg".format(dt))
+    print("Discretización temporal en pasos de {:.1f} seg".format(dt))
     print("Longitud en 'x' del dominio: {:.1f} m".format(Lx))
     print("Longitud en 'y' del dominio: {:.1f} m".format(Ly))
     print("")
