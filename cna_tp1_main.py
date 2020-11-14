@@ -83,8 +83,9 @@ def main(archivo_input):
     print("\nDatos de discretización")
     print("-------------------")
     if auto_dt=="SI":
-        print("\nSelección automática de paso temporal")
-    print("Discretización temporal en pasos de {:.1f} seg".format(dt))
+        print("Selección automática de paso temporal")
+        print("")
+
     print("Longitud en 'x' del dominio: {:.1f} m".format(Lx))
     print("Longitud en 'y' del dominio: {:.1f} m".format(Ly))
     print("")
