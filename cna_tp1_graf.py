@@ -16,6 +16,7 @@ Programa auxiliar que grafica cortes de la solución a lo largo del eje
 """
 
 import cna_tp1_in as cna_in
+import cna_tp1_func as cna_func
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -42,10 +43,20 @@ def main(archivo_input):
     y_fin = vs['Y_FIN']
 
     # Parámetros de modelado
+    vel = vs['VEL'] # [m/s]
     h = vs['H']     # [m]
+    f = vs['F']     # [adim]
+    e_l = vs['E_L'] # [adim]
+    e_t = vs['E_T'] # [adim]
+
+    D_l = e_l * h * vel * f # difusividad longitudinal [m^2/s]
+    D_t = e_t * h * vel * f # difusividad transversal [m^2/s]
+    print(type(D_l))
+    print(type(D_t))
 
     # Parámetros de la descarga de contaminante
     desc_cont = vs['DESC_CONT'] # Descarga continua [kg/día]
+    c_dec = vs['C_DEC'] # Cte de decaimiento del contaminante [1/día]
 
     # Tiempo total a simular [minutos]
     t_total = vs['T_TOTAL']
@@ -54,7 +65,17 @@ def main(archivo_input):
 
     dx = vs['DX']
     dy = vs['DY']
-    dt = vs['DT']
+
+    # Selección de paso temporal
+    auto_dt = vs['AUTO_DT']
+    
+    if auto_dt=="NO":
+        dt = vs['DT']
+
+    else: # auto_dt=="SI"
+        dt = cna_func.auto_dt(delta_x=dx, delta_y=dy,
+                              t_final=t_total,
+                              dif_long=D_l,dif_trans=D_t)
 
     Lx = x_fin - x_ini
     Ly = y_fin - y_ini
@@ -93,26 +114,25 @@ def main(archivo_input):
     # Aporte de contaminante
     cu_desc_cont = desc_cont * cu # [kg/seg]
 
+    # Forzante
+    vforz = cu_desc_cont * dt
+
     ## Datos para estabilidad
     #rx = D_l * dt / (dx**2)
     #ry = D_t * dt / (dy**2)
 
-    #print("\nDatos para evaluar estabilidad:")
-    #print("    rx = {:.6f}".format(rx))
-    #print("    ry = {:.6f}".format(ry))
-
-    # Selección de método
+     # Selección de método
     #theta = 1.0 --> Fuertemente implícito
     #theta = 0.5 --> Crank-Nicolson
     #theta = 0.0 --> Explícito centrado
     theta = vs['THETA']
 
     if theta==0.0:
-        metodo = "Explícito centrado"
+        metodo = "Explícito Centrado"
     elif theta==0.5:
         metodo = "Crank-Nicolson"
     elif theta==1.0:
-        metodo = "Fuertemente implícito"
+        metodo = "Fuertemente Implícito"
     else:
         pass
     
@@ -149,16 +169,6 @@ def main(archivo_input):
     # Cantidad de pasos
     n_pasos = np.arange(dt, t_final+dt,dt)
 
-    # Bucle de búsqueda de valores máximos y mínimos en la solución
-    for t in n_pasos:
-        ##TODO
-        ## Directorio con las soluciones guardadas
-        #dir_sol = "cna_tp1_sol_dx{}_dy{}_dt{}_theta{}".\
-            #format(dx,dy,dt,theta)
-        ## Archivo con datos de solución
-        #solucion = np.loadtxt(ruta_sol)
-        pass
-
     # Bucle de solución
     for t in n_pasos:
 
@@ -171,7 +181,7 @@ def main(archivo_input):
 
         # Impresión según intervalo de tiempo     
         if (t/60)%t_sol==0:
-            arch_sol = "cont_{:.1f}".format(t)
+            arch_sol = "sol_{:.1f}".format(t)
             arch_img = "sol_{:03d}min_y{:03.1f}m.png".format(np.int(t/60),y_img*dy)
             ruta_sol = os.path.join(os.getcwd(),dir_sol,arch_sol)
             ruta_img = os.path.join(os.getcwd(),dir_img,arch_img)
@@ -184,14 +194,50 @@ def main(archivo_input):
             # Datos de solución para el gráfico
             solucion = np.loadtxt(ruta_sol)
 
+            ## DIMENSIONAL
+            ## Texto para el gráfico
+            #titulo = "C (t = {:5.1f} min, y = {:03.1f}0 m)".\
+                #format(t/60, y_img*dy)
+            #nom_x = "L$_x$ [m]"
+            #nom_y = "C [kg/m$^3$]"
+            #c_inf = 0
+            #orden = np.abs(np.int(np.floor(np.log10(vforz/v_cel))))
+            #c_sup = np.around(vforz*1e1/v_cel,decimals=orden)
+            #texto = "{}".format(metodo) +\
+                    #"\n$\Delta$x: {:04.1f} m".format(dx) +\
+                    #"\n$\Delta$y: {:04.1f} m".format(dy) +\
+                    #"\n$\Delta$t: {:.1f} s".format(dt)
+            #x_texto = (x_ini+x_fin)*0.875
+            #y_texto = (c_inf+c_sup)*0.5
+            #etiqueta="Concentración"
+
+            ## Impresión del gráfico
+            #plt.figure()
+            #plt.title(titulo)
+            #plt.xlabel(nom_x)
+            #plt.ylabel(nom_y)
+            #plt.ylim(c_inf,c_sup)
+            #plt.text(x_texto, y_texto, texto, 
+                     #va="center", ha="center")
+            #plt.plot(xs, solucion[y_img], "r", label=etiqueta)
+            #plt.legend(loc="upper right", framealpha=1)
+            #plt.savefig(ruta_img)
+            #plt.clf()
+            #plt.close()
+
+            # ADIMENSIONAL
             # Texto para el gráfico
-            titulo = "C (t = {:5.1f} min, y = 0 m)".format(t/60)
+            titulo = "Método {}".format(metodo) + \
+                     " (t = {:5.1f} min, y = {:03.1f}0 m)".\
+                     format(t/60, y_img*dy)
             nom_x = "L$_x$ [m]"
-            nom_y = "C [kg/m$^3$]"
+            nom_y = "C/C$_{forz}$"
             c_inf = 0
-            orden = np.abs(np.int(np.floor(np.log10(cu_desc_cont/v_cel))))
-            c_sup = np.around(cu_desc_cont/v_cel,decimals=orden)
-            texto = "{}".format(metodo) +\
+            #orden = np.abs(np.int(np.floor(np.log10(vforz/v_cel))))
+            #c_sup = np.around(vforz*1e1/v_cel,decimals=orden)
+            c_sup = 5
+            texto = "C$_{forz}$: " + "{:.3e} kg/m$^3$".\
+                    format(vforz/v_cel) +\
                     "\n$\Delta$x: {:04.1f} m".format(dx) +\
                     "\n$\Delta$y: {:04.1f} m".format(dy) +\
                     "\n$\Delta$t: {:.1f} s".format(dt)
@@ -200,6 +246,7 @@ def main(archivo_input):
             etiqueta="Concentración"
 
             # Impresión del gráfico
+            sol_adim = solucion[y_img] / (vforz/v_cel)
             plt.figure()
             plt.title(titulo)
             plt.xlabel(nom_x)
@@ -207,7 +254,7 @@ def main(archivo_input):
             plt.ylim(c_inf,c_sup)
             plt.text(x_texto, y_texto, texto, 
                      va="center", ha="center")
-            plt.plot(xs, solucion[y_img], "r", label=etiqueta)
+            plt.plot(xs, sol_adim, "r", label=etiqueta)
             plt.legend(loc="upper right", framealpha=1)
             plt.savefig(ruta_img)
             plt.clf()
