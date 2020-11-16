@@ -176,9 +176,9 @@ def main(archivo_input):
             # Construcción de la identificación del borde
             borde_aplicacion = key.lower().replace('cb_','')
 
-            B = cna_func.cb_Dir(\
+            B = cna_func.cb_Dir(
                 B, borde=borde_aplicacion, n_el_x=nx, n_el_y=ny)
-            A = cna_func.cb_Dir(\
+            A = cna_func.cb_Dir(
                 A, borde=borde_aplicacion, n_el_x=nx, n_el_y=ny)
                 
         else:
@@ -190,50 +190,34 @@ def main(archivo_input):
     u_ini = np.zeros((nt,1))
 
     # Forzante. Ubicado en el nodo adyacente a la esquina
-    # superior izquierda, sobre borde 'y_ini'
-    xforz = 1
-    yforz = 0
+    # superior izquierda, sobre la fila de nodos 'y' adyacente
+    # al borde 'y_ini'
+    #xforz = 1
+    #yforz = 1
+    xforz, yforz = cna_func.pos_forz(pos_x=vs['POS_X_FORZ'],
+                                     pos_y=vs['POS_Y_FORZ'],
+                                     n_el_x=nx,n_el_y=ny)
     
-    ## ANTERIOR:
-    ## La descarga de contaminante, unidades kg/s, se multiplica por el
-    ## intervalo 'dt' para que en cada paso de tiempo la forzante sea igual
-    ## a la cantidad de contaminante que se vuelca en el total del intervalo
+    # ANTERIOR:
+    # La descarga de contaminante, unidades kg/s, se multiplica por el
+    # intervalo 'dt' para que en cada paso de tiempo la forzante sea igual
+    # a la cantidad de contaminante que se vuelca en el total del intervalo
+    vforz = cu_desc_cont * dt
 
-    # ACTUAL
-    # La descarga de contaminante, unidades kg/s, se aplica como tal como
-    # forzante, expresando una 'cantidad instantánea'. Con esto, es posible
-    # comparar la cantidad de contaminante en cada paso temporal
-    # independientemente del 'dt' utilizado
-    vforz = cu_desc_cont
+    ##ACTUAL
+    ## La descarga de contaminante, unidades kg/s, se aplica como tal como
+    ## forzante, expresando una 'cantidad instantánea'. Con esto, es posible
+    ## comparar la cantidad de contaminante en cada paso temporal
+    ## independientemente del 'dt' utilizado
+    #vforz = cu_desc_cont
 
 
     print("\nFuente: {:.3e} kg/s de contaminante".format(cu_desc_cont))
-    #print("Descarga por intervalo 'dt' de {:.1f} s: {:.3e} kg".\
-          #format(dt, vforz))
-
-
-    # Aplicación de la forzante al vector de condición inicial y a las
-    # matrices de cálculo correspondiente
-    u_rhs = cna_func.cb_vector_Forz(\
-        vector_solucion=u_ini,\
-        pos_x=xforz,\
-        pos_y=yforz,\
-        valor_forzante=vforz,\
-        n_el_x=nx,\
-        n_el_y=ny)
-
-    B = cna_func.cb_matriz_Forz(\
-        matriz_aplicacion=B,\
-        pos_x=xforz,\
-        pos_y=yforz,\
-        n_el_x=nx,\
-        n_el_y=ny)
-    A = cna_func.cb_matriz_Forz(\
-        matriz_aplicacion=A,\
-        pos_x=xforz,\
-        pos_y=yforz,\
-        n_el_x=nx,\
-        n_el_y=ny)
+    print("Descarga por intervalo 'dt' de {:.1f} seg: {:.3e} kg".
+          format(dt, vforz))
+    print("Concentración de la forzante por intervalo 'dt' de {:.1f} seg".
+          format(dt) + " y nodo con volumen asociado {:.2f} m^3: ".
+          format(v_cel) + "{:.3e} kg/m^3".format(vforz/v_cel))
 
 
     #**** IMPRESIÓN DE MATRICES FINALES ****#    
@@ -254,59 +238,53 @@ def main(archivo_input):
 
     # Cantidad de pasos
     n_pasos = np.arange(dt, t_final+dt,dt)
-
+    #n_pasos = np.arange(dt, dt+dt,dt)
+    
     # Bucle de solución
     for t in n_pasos:
 
         #print("Vector 'u_rhs', t = {} s".format(t))
         #print(u_rhs)
 
+        # Construcción del vector independiente con la forzante
+        u_rhs = cna_func.vector_rhs(mat_ind=B,
+                                    vec_ini=u_ini,
+                                    val_forz=vforz,
+                                    pos_x=xforz, pos_y=yforz,
+                                    n_el_x=nx, n_el_y=ny)
+        
         # Cálculo del vector solución
-        u_n1 = splinalg.spsolve(A.tocsc(), B.dot(u_rhs))
-        
-        # Actualización del vector viejo
-        u_rhs = u_n1
+        u_n1 = splinalg.spsolve(A.tocsc(), u_rhs)
 
-        # PARA PENSAR: la cantidad de contaminante usada como
-        # forzante es la descarga, unidades kg/s, multiplicada por
-        # el intervalo 'dt'. El vector forzante tiene, entonces,
-        # unidades kg. ¿Es esto consistente con la forma de las
-        # ecuaciones matriciales? Si del lado izquierdo se despeja
-        # el vector u_n+1 para que el lado derecho tenga la
-        # expresión r=D*dt/dx^2, entonces pareciera que sí.
-        # Por el momento, este es el enfoque adoptado.
-        #
-        # El problema es que así, para distintos intervalos dt
-        # se tienen valores de contaminante diferentes. Entonces,
-        # para uniformizar la solución, se divide esto por 'dt',
-        # lo cual parece deshacer lo descrito en el párrafo
-        # anterior. ¿CUÁL ES EL PROCEDIMIENTO CORRECTO?
-        #
-        # Finalmente, para obtener la concentración, se divide
-        # el valor anterior por el volumen del nodo, calculado
-        # como dx*dy*h
-        
-        ## ANTERIOR
-        #sol_concentracion = u_n1/(v_cel*dt)
-
-        # ACTUAL
-        sol_concentracion = u_n1/v_cel
+        # Actualización del vector del lado derecho
+        u_ini = u_n1
 
         # Impresión tiempo cada 1 minuto
         if (t/60)%1==0:
+            ## ANTERIOR
+            #sol_concentracion = u_n1/(v_cel*dt)
+            # ACTUAL
+            sol_max = u_n1.max()/v_cel
             print("\nTiempo: {:.1f} min".format(t/60))
-            print("Valor máximo de concentración instantánea: "\
-                  + "{:.3e} kg/m^3".format(sol_concentracion.max()))
+            print("\tValor máximo de concentración: " +
+                  "\t{:.3e} kg/m^3".format(sol_max))
+
+            print("")
+            print("\tValor máximo de concentración relativa [adim],\n" +
+                  "\tconc_max / conc_forz: {:.3e}".
+                  format(sol_max/(vforz/v_cel)))
+                  
 
         # Guardar vector solución a archivo según el intervalo
         # especificado
         dir_sol = "cna_tp1_sol_dx{}_dy{}_dt{}_theta{}".\
-            format(dx,dy,dt,theta)
+        format(dx,dy,dt,theta)
 
         t_sol = vs['T_SOL'] # [min]
 
         if (t/60)%t_sol==0:
-            arch_sol = "cont_{:.1f}".format(t)
+            sol_concentracion = u_n1/v_cel
+            arch_sol = "sol_{:.1f}".format(t)
             ruta_sol = os.path.join(os.getcwd(),dir_sol,arch_sol)
 
             try:
@@ -319,7 +297,7 @@ def main(archivo_input):
             "Theta = {:.1f}\n".format(theta) +\
             "t = {:.2f} min".format(t/60)
 
-            np.savetxt(ruta_sol,sol_concentracion.reshape(ny,nx),\
+            np.savetxt(ruta_sol,sol_concentracion.reshape(ny,nx),
                        fmt='%.6e',header=encabezado)
             
     #**** FIN MAIN ****#
