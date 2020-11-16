@@ -419,8 +419,7 @@ def d_dy(orden=None, n_el_x=1, n_el_y=1, delta_y=1, upwinding='NO'):
 #%%
 
 ##%%
-def cb_Dir(matriz_aplicacion, borde=None, valor=0,\
-    n_el_x=1, n_el_y=1):
+def cb_Dir(matriz_aplicacion, borde=None, valor=0,n_el_x=1, n_el_y=1):
     """
     Función que aplica sobre una matriz los coeficientes necesarios para
     la condición de Dirichlet. Asegura que los valores del vector inicial
@@ -441,13 +440,13 @@ def cb_Dir(matriz_aplicacion, borde=None, valor=0,\
 
     if borde==None:
         print("Error en función 'cb_Dir'")
-        print("Borde para aplicación de condición de borde " +\
+        print("Borde para aplicación de condición de borde " +
               "no especificado")
         sys.exit(1)
     elif borde not in ('x_ini','x_fin','y_ini','y_fin'):
         print("Error en función 'cb_Dir'")
-        print("Borde de aplicación de condición de borde mal " +\
-              "especificado. Debe ser alguna de estas opciones:\n" +\
+        print("Borde de aplicación de condición de borde mal " +
+              "especificado. Debe ser alguna de estas opciones:\n" +
               "'x_ini'\n'x_fin'\n'y_ini'\n'y_fin'")
         sys.exit(1)
     else:
@@ -484,21 +483,31 @@ def cb_Dir(matriz_aplicacion, borde=None, valor=0,\
 #%%
 
 #%%
-def cb_vector_Forz(vector_solucion, valor_forzante,\
-    pos_x=0, pos_y=0, n_el_x=1, n_el_y=1):
+def vector_rhs(mat_ind=None,
+               vec_ini=None,
+               val_forz=None,
+               pos_x=1, pos_y=1, n_el_x=1, n_el_y=1):
     """
-    Función que aplica en el vector solución inicial el valor de la 
-    forzante en el nodo correspodiente.
+    Función que construye el vector del lado derecho en la ecuación
+    Ax = b.
     
-    Requiere que se especifique el nodo de aplicación.
+    Requiere que se especifique el nodo de aplicación de la forzante.
+    Requiere la matriz que multiplica al vector solución para construir
+    el vector de términos independientes. Luego suma a este vector la
+    forzante en el nodo correspodiente.
+
+    La construcción de este vector se realiza al inicio de la solución
+    iterativa.
     """
-
-    if vector_solucion.any()==None:
-        print("Error en función 'cb_For'")
-        print("Vector solución  no especificado")
+    if mat_ind==None:
+        print("Error en función 'vector_rhs'")
+        print("Matriz de términos independientes no especificada")
         sys.exit(1)
-
-    elif valor_forzante==None:
+    elif vec_ini[0]==None:
+        print("Error en función 'vector_rhs'")
+        print("Vector inicial no especificado")
+        sys.exit(1)
+    elif val_forz==None:
         print("Error en función 'cb_For'")
         print("Valor de la forzante no especificado")
         sys.exit(1)
@@ -508,28 +517,23 @@ def cb_vector_Forz(vector_solucion, valor_forzante,\
     # Número de elementos de la matriz final usada en el cálculo
     n_el_total = n_el_x * n_el_y
 
-    # Matriz identidad
-    matriz_I = sp.eye(m=n_el_total, format='lil')
+    # Construcción del vector de términos independientes
+    vec_ind = mat_ind.dot(vec_ini)
 
-    # Igualación a 0 de la fila de la matriz correspondiente al nodo de la
-    # forzante en la matriz identidad
-    fila_forzante = pos_x + n_el_x*np.int(pos_y)
+    # Determinación de la posición de la forzante
+    pos_forzante = pos_x + n_el_x*np.int(pos_y)
 
-    matriz_I[fila_forzante] = 0 * sp.eye(m=1, n=n_el_total)
+    # Suma del valor de la forzante al vector de términos independientes en
+    # el nodo correspodiente
+    vec_ind[pos_forzante] += val_forz
 
-    # Construcción del vector con valor de forzante en 
-    # nodo correspondiente
-    vector_forzante = 0 * sp.eye(m=n_el_total, n=1, format='lil')
-    vector_forzante[fila_forzante] = valor_forzante
-    vector_final = matriz_I.dot(vector_solucion) + vector_forzante
-
-    # Fin función 'cb_vector_Forz'
-    return vector_final
+    # Fin función 'vector_rhs'
+    return vec_ind
 #%%
 
 #%%
-def cb_matriz_Forz(matriz_aplicacion, pos_x=0, pos_y=0,\
-    n_el_x=1, n_el_y=1):
+def cb_matriz_Forz(matriz_aplicacion, 
+                   pos_x=0, pos_y=0,n_el_x=1, n_el_y=1):
     """
     Función que modifica las matrices A y B (o LHS y RHS) para asegurar
     que el nodo correspodiente a la forzante mantenga su valor.
@@ -565,11 +569,46 @@ def cb_matriz_Forz(matriz_aplicacion, pos_x=0, pos_y=0,\
 #%%
 
 #%%
-def conc_Cont(desc_cont=None, delta_x=1, delta_y=1, prof=1, delta_t=1):
+def pos_forz(pos_x='INI', pos_y='INI', n_el_x=1, n_el_y=1):
     """
-    Función que ...
+    Función que ubica la forzante en el nodo deseado del vector inicial.
+    Por defecto, lo ubica adyacente a los bordes 'x_ini' e 'y_ini'.
+
+    Por simpleza para la programación, la forzante no se ubica nunca sobre
+    los bordes del dominio (si así fuera indicado), sino en el nodo
+    adyacente a los bordes. Esto es para asegurar que la imposición de una
+    condición de Dirichlet no anule el efecto acumulativo que tiene la
+    descarga de kg de contaminante por segundo.
+
+    Hay tres opciones disponibles de ubicación: 'INI', 'MED' y 'FIN'.
+    La primera ubica en el nodo adyacente al borde desde donde comienza
+    la medición según la coordenada especficada. 'MED' ubica en el nodo
+    correspondiente a la mitad de la longitud en esta coordenada, y 'FIN'
+    en el nodo adyacente al borde donde termina la coordenada.
     """
-    pass
+
+    # Determinación en coordenada 'x'
+    if pos_x=='INI':
+        x_forz = 1
+    elif pos_x=='MED':
+        x_forz = np.int(n_el_x/2)
+    elif pos_x=='FIN':
+        x_forz=np.int(n_el_x-1)
+    else:
+        pass
+
+    # Determinación en coordenada 'y'
+    if pos_y=='INI':
+        y_forz = 1
+    elif pos_y=='MED':
+        y_forz = np.int(n_el_y/2)
+    elif pos_y=='FIN':
+        y_forz=np.int(n_el_y-1)
+    else:
+        pass
+
+    # Fin función 'pos_forz'
+    return x_forz, y_forz
 #%%
 
 #%%
@@ -648,5 +687,9 @@ def auto_dt(delta_x=1, delta_y=1, incremento=0.5, t_final=1,
 
 #D2Y = d_dy(orden=2, n_el_x=nx, n_el_y=ny, upwinding=UW)
 #print(D2Y.toarray())
+
+#u_rhs = cb_vector_Forz(valor_forzante=6e-1,n_el_x=nx,n_el_y=ny,
+                       #pos_x=1,pos_y=1)
+#print(u_rhs)
 
 #**** FIN PROGRAMA ****#

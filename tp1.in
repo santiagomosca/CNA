@@ -68,7 +68,7 @@ T_TOTAL = 120.0
 # DISCRETIZACIÓN DEL PROBLEMA
 # ---------------------------
 DX = 10.0
-DY = 1.0
+DY = 5.0
 
 # DISCRETIZACIÓN DEL PASO TEMPORAL. SE PUEDE ELEGIR POR UNA AUTOSELECCIÓN,
 # QUE AJUSTA 'DT' SEGÚN CRITERIO DE ESTABILIDAD PARA MÉTODO EXPLÍCITO EN 
@@ -78,7 +78,7 @@ DY = 1.0
 # AUTO_DT DEBE SER 'SI' O 'NO'
 
 AUTO_DT = NO
-DT = 2.0
+DT = 25.0
 
 # ====================================================================== #
 # CONDICIONES DE BORDE
@@ -100,6 +100,21 @@ CB_Y_INI = NEU
 
 # Condición para el borde con coordenada 'Y_FIN'
 CB_Y_FIN = NEU
+
+# ====================================================================== #
+# POSICIÓN DE LA FORZANTE
+# --------------------
+# La forzante puede ubicarse en tres sitios predeterminados: al inicio, al
+# medio o al fin de la longitud de la coordenada dada. Por simpleza de
+# programación, en caso de ubicarse al inicio (o al fin) de la longitud el
+# programa ubica la forzante en el nodo adyacente al borde
+# correspondiente. Las opciones de selección son 'INI', 'MED' o 'FIN'.
+
+# Ubicación de la forzante en coordenada 'x'
+POS_X_FORZ = INI
+
+# Ubicación de la forzante en coordenada 'y'
+POS_Y_FORZ = INI
 
 # ====================================================================== #
 # SELECCIÓN DE MÉTODO DE SOLUCIÓN
@@ -133,6 +148,6 @@ T_SOL = 5
 DIM_IMG = 1
 
 # Nodo 'y' a lo largo del que se grafica la solución
-Y_IMG = 0
+Y_IMG = 1
 
 # ====================================================================== #
