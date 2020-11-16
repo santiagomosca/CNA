@@ -57,6 +57,8 @@ def datos_input(archivo_input, comentario='#'):
     # el programa 'v2_main_tp1.py'
     nom_var_alfa_prog = [
                          'auto_dt',
+                         'pos_x_forz',
+                         'pos_y_forz',
                          'cb_x_ini',
                          'cb_x_fin',
                          'cb_y_ini',
@@ -146,6 +148,15 @@ def datos_input(archivo_input, comentario='#'):
                 sys.exit(1)
             else:
                  pass
+
+        # Verificación de la ubicación de la forzante
+        elif key in nom_var_alfa_in[1:3]:
+            if dict_valores_alfa[key] not in ('INI', 'MED', 'FIN'):
+                print("Ubicación de la forzante mal especificada")
+                print("La ubicación debe ser 'INI', 'MED' o 'FIN'")
+                sys.exit(1)
+            else:
+                pass
             
         # Verificación de las condiciones de borde
         elif key in nom_var_alfa_in[1:-1]:
