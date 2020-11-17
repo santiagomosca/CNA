@@ -51,6 +51,8 @@ def main(archivo_input):
 
     D_l = e_l * h * vel * f # difusividad longitudinal [m^2/s]
     D_t = e_t * h * vel * f # difusividad transversal [m^2/s]
+    print(type(D_l))
+    print(type(D_t))
 
     # Parámetros de la descarga de contaminante
     desc_cont = vs['DESC_CONT'] # Descarga continua [kg/día]
@@ -97,6 +99,7 @@ def main(archivo_input):
     nt = np.int(nx*ny)
 
     xs = np.arange(x_ini+dx/2, x_fin,dx)
+    ys = np.arange(y_ini+dy/2, y_fin,dy)
 
     print("Cantidad de nodos totales en 'x': {:d}".format(nx))
     print("Cantidad de nodos totales en 'y': {:d}".format(ny))
@@ -144,17 +147,15 @@ def main(archivo_input):
     # Dimensión de gráfico: 1D o 2D
     dim_img = np.int(vs['DIM_IMG'])
 
-    if dim_img!=1:
-        print("Impresión en gráfico implementada sólo en 1D")
-        sys.exit(1)
-    else:
-        pass
+    if dim_img==1:
+        # Nodo 'y' a lo largo del que se grafica
+        y_img = np.int(vs['Y_IMG'])
 
-    # Nodo 'y' a lo largo del que se grafica
-    y_img = np.int(vs['Y_IMG'])
+        print("\nEjecutando bucle de salida a gráfico 1D, y = {:.1f} m:".
+              format(y_img*dy))
 
-    print("\nEjecutando bucle de salida a gráfico para y = {:.1f} m:".
-          format(y_img*dy))
+    else: #dim_img==2
+        print("\nEjecutando bucle de salida a gráfico 2D")
     
     # Intervalo en el que se imprime gráfico
     t_sol = vs['T_SOL'] # [min]
@@ -173,13 +174,19 @@ def main(archivo_input):
         dir_sol = "cna_tp1_sol_dx{}_dy{}_dt{}_theta{}".\
             format(dx,dy,dt,theta)
 
-        # Directorio de imágenes
-        dir_img = os.path.join(dir_sol,"imagenes_{}D_y{:.1f}m".format(dim_img,y_img*dy))
-
         # Impresión según intervalo de tiempo     
         if (t/60)%t_sol==0:
             arch_sol = "sol_{:.1f}".format(t)
-            arch_img = "sol_{:03d}min_y{:03.1f}m.png".format(np.int(t/60),y_img*dy)
+
+            # Directorio de imágenes y archivo imagen
+            if dim_img == 1:
+                dir_img = os.path.join(dir_sol,"imagenes_{}D_y{:.1f}m".format(dim_img,y_img*dy))
+                arch_img = "sol_{:03d}min_y{:03.1f}m.png".format(np.int(t/60),y_img*dy)
+
+            else:
+                dir_img = os.path.join(dir_sol,"imagenes_{}D".format(dim_img))
+                arch_img = "sol_{:03d}min_map.png".format(np.int(t/60))
+
             ruta_sol = os.path.join(os.getcwd(),dir_sol,arch_sol)
             ruta_img = os.path.join(os.getcwd(),dir_img,arch_img)
 
@@ -191,75 +198,100 @@ def main(archivo_input):
             # Datos de solución para el gráfico
             solucion = np.loadtxt(ruta_sol)
 
-            ## DIMENSIONAL
-            ## Texto para el gráfico
-            #titulo = "Método {}".format(metodo) + \
-                     #" (t = {:5.1f} min, y = {:03.1f}0 m)".\
-                     #format(t/60, y_img*dy)
-            #nom_x = "L$_x$ [m]"
-            #nom_y = "C [kg/m$^3$]"
-            #c_inf = 0
-            #orden = np.abs(np.int(np.floor(np.log10(vforz/v_cel))))
-            #c_sup = np.around(vforz*1e1/v_cel,decimals=orden)
-            #texto = "{}".format(metodo) +\
-                    #"\n$\Delta$x: {:04.1f} m".format(dx) +\
-                    #"\n$\Delta$y: {:04.1f} m".format(dy) +\
-                    #"\n$\Delta$t: {:.1f} s".format(dt)
-            #x_texto = (x_ini+x_fin)*0.875
-            #y_texto = (c_inf+c_sup)*0.5
-            #etiqueta="Concentración"
-
-            ## Impresión del gráfico
-            #plt.figure()
-            #plt.title(titulo)
-            #plt.xlabel(nom_x)
-            #plt.ylabel(nom_y)
-            #plt.ylim(c_inf,c_sup)
-            #plt.text(x_texto, y_texto, texto, 
-                     #va="center", ha="center")
-            #plt.plot(xs, solucion[y_img], "r", label=etiqueta)
-            #plt.legend(loc="upper right", framealpha=1)
-            #plt.savefig(ruta_img)
-            #plt.clf()
-            #plt.close()
-
             # ADIMENSIONAL
-            # Texto para el gráfico
-            titulo = "Método {}".format(metodo) + \
-                     " (t = {:5.1f} min, y = {:03.1f}0 m)".\
-                     format(t/60, y_img*dy)
-            nom_x = "L$_x$ [m]"
-            nom_y = "C/C$_{forz}$"
-            c_inf = 0
-            #orden = np.abs(np.int(np.floor(np.log10(vforz/v_cel))))
-            #c_sup = np.around(vforz*1e1/v_cel,decimals=orden)
-            c_sup = 5
+            # ------------
+            conc_ini = vforz/v_cel # Concentración inicial de la forzante
+
+            # Dimensiones de los gráficos
+            c_inf = 0 # Nivel inferior de concentración relativa
+            c_sup = 3 # Nivel superior de concentración relativa
+
+            xs_adim = np.linspace(0,1,nx)
+            
+            if dim_img==1:
+                plt.ylim(c_inf,c_sup)
+
+            else: #dim_img==2
+                y_sup = 0.25 # Un cuarto del dominio en 'y'
+                lim_plot_y = np.int(ny*y_sup)
+                ys_adim = np.linspace(0,y_sup,lim_plot_y)
+
+            # Texto para gráficos
             texto = "C$_{forz}$: " + "{:.3e} kg/m$^3$".\
-                    format(vforz/v_cel) +\
+                    format(conc_ini) +\
                     "\n$\Delta$x: {:04.1f} m".format(dx) +\
                     "\n$\Delta$y: {:04.1f} m".format(dy) +\
                     "\n$\Delta$t: {:.1f} s".format(dt)
-            x_texto = (x_ini+x_fin)*0.875
-            y_texto = (c_inf+c_sup)*0.5
-            etiqueta="Concentración"
 
-            # Impresión del gráfico
-            sol_adim = solucion[y_img] / (vforz/v_cel)
-            plt.figure()
+            x_texto = (xs_adim[-1] - xs_adim[0])*0.875
+            etiqueta="C/C$_{forz}$"
+            nom_x = "L/L$_x$"
+            
+            if dim_img==1:
+                y_texto = (c_sup-c_inf)*0.5
+                titulo = "Método {}\n".format(metodo) + \
+                         "t = {:5.1f} min, y = {:03.1f}0 m".\
+                         format(t/60, y_img*dy)
+                nom_y = "C/C$_{forz}$"
+
+            else: #dim_img==2
+                y_texto = (ys_adim[-1] - ys_adim[0])*0.75
+                titulo = "Método {}\n".format(metodo) + \
+                         "t = {:5.1f} min".format(t/60)
+                nom_y = "L/L$_y$"
+            
+            # Impresión del gráfico adimensional
+            plt.figure(figsize=(12,6))
+            plt.tight_layout()
             plt.title(titulo)
             plt.xlabel(nom_x)
             plt.ylabel(nom_y)
-            plt.ylim(c_inf,c_sup)
-            plt.text(x_texto, y_texto, texto, 
-                     va="center", ha="center")
-            plt.plot(xs, sol_adim, "r", label=etiqueta)
-            plt.legend(loc="upper right", framealpha=1)
+
+            if dim_img==1:
+                plt.ylim(c_inf,c_sup)
+                plt.text(x_texto, y_texto, texto,
+                         va="center", ha="center")
+                plt.plot(xs_adim,
+                         solucion[y_img]/(conc_ini),
+                         "r", label=etiqueta)
+                plt.legend(loc="upper right", framealpha=1)
+
+            else: #dim_img==2
+                # Ejes
+                plt.xlim(xs_adim[0],xs_adim[-1])
+                plt.ylim(ys_adim[0],ys_adim[-1])
+
+                # Solución
+                sol_adim = solucion[:lim_plot_y] / (conc_ini)
+
+                # Texto
+                plt.text(x_texto, y_texto, texto,
+                         bbox=dict(fill=True,facecolor="white",alpha=1.0),
+                         va="center", ha="center")
+
+                # Mapa de contornos
+                paso_plot = 0.25
+                niv_contourf = np.arange(c_inf,
+                                         c_sup+paso_plot,
+                                         paso_plot)
+
+                niv_colorbar = np.arange(c_inf,
+                                         c_sup+paso_plot,
+                                         2*paso_plot)
+
+                plt.contourf(xs_adim, ys_adim, sol_adim,
+                             cmap="coolwarm", levels=niv_contourf)
+                
+                cbar = plt.colorbar(ticks=niv_colorbar)
+                cbar.ax.set_ylabel(etiqueta)
+
+            # Salida a archivo
             plt.savefig(ruta_img)
             plt.clf()
             plt.close()
 
     #**** FIN MAIN ****#
-    
+
 if __name__ == "__main__":
     if (len(sys.argv) != 2):
         print("Error: número incorrecto de argumentos")
@@ -267,5 +299,5 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         main(sys.argv[1])
-    
+
 #**** FIN PROGRAMA ****#

@@ -77,8 +77,8 @@ DY = 5.0
 # AUNQUE NO SERÁ TENIDA EN CUENTA.
 # AUTO_DT DEBE SER 'SI' O 'NO'
 
-AUTO_DT = NO
-DT = 25.0
+AUTO_DT = SI
+DT = 2.0
 
 # ====================================================================== #
 # CONDICIONES DE BORDE
@@ -145,7 +145,7 @@ T_SOL = 5
 # Si dimensión es <2>, entonces la salida es una vista superior del
 # dominio, con la solución expresada según mapa de colores.
 
-DIM_IMG = 1
+DIM_IMG = 2
 
 # Nodo 'y' a lo largo del que se grafica la solución
 Y_IMG = 1

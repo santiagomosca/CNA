@@ -151,7 +151,7 @@ def datos_input(archivo_input, comentario='#'):
 
         # Verificación de la ubicación de la forzante
         elif key in nom_var_alfa_in[1:3]:
-            if dict_valores_alfa[key] not in ('INI', 'MED', 'FIN'):
+            if dict_valores_alfa[key] not in ('INI','MED','FIN'):
                 print("Ubicación de la forzante mal especificada")
                 print("La ubicación debe ser 'INI', 'MED' o 'FIN'")
                 sys.exit(1)
@@ -189,6 +189,13 @@ def datos_input(archivo_input, comentario='#'):
     if dict_valores_num['THETA'] > 1.0 or \
        dict_valores_num['THETA'] < 0.0:
         print("Error: THETA debe variar entre 0 y 1")
+        sys.exit(1)
+    else:
+        pass
+
+    # Verificación del valor de dimensión de gráfico
+    if dict_valores_num['DIM_IMG'] not in (1,2):
+        print("Error: DIMG_IMG debe ser <1> o <2>")
         sys.exit(1)
     else:
         pass
