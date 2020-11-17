@@ -75,6 +75,7 @@ def main(archivo_input):
     else: # auto_dt=="SI"
         dt = cna_func.auto_dt(delta_x=dx, delta_y=dy,
                               t_final=t_total,
+                              lim_estabilidad=0.25,
                               dif_long=D_l,dif_trans=D_t)
 
     Lx = x_fin - x_ini
